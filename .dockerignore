@@ -1,0 +1,15 @@
+node_modules
+frontend/node_modules
+frontend/.next
+backend/.venv
+backend/venv
+backend/data
+backend/__pycache__
+__pycache__
+.git
+.gitignore
+.env
+.env.local
+.env*.local
+*.db
+*.sqlite
