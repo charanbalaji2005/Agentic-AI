@@ -12,7 +12,7 @@ services:
     healthCheckPath: /api/models
     envVars:
       - key: ENVIRONMENT
-        value: production
+        value: prod
       - key: LOG_LEVEL
         value: INFO
 

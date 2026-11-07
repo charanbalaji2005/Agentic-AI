@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "Agentic RAG"
-    environment: Literal["dev", "prod"] = "dev"
+    environment: Literal["dev", "prod", "production", "development"] = "dev"
     log_level: str = "INFO"
     api_key: str | None = None  # if set, every request must send X-API-Key
     cors_origins: list[str] = ["http://localhost:3000"]
