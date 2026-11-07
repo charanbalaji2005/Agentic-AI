@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 # Port assigned dynamically by Render (defaults to 10000 or $PORT)
@@ -24,9 +24,10 @@ cd "${SERVER_DIR}"
 PORT="${WEB_PORT}" HOSTNAME="0.0.0.0" INTERNAL_BACKEND_URL="http://127.0.0.1:${INTERNAL_PORT}" node server.js &
 FRONTEND_PID=$!
 
-# Trap signals and terminate child processes cleanly
-trap "kill -TERM $BACKEND_PID $FRONTEND_PID 2>/dev/null || true" SIGINT SIGTERM
+# Trap termination signals (INT and TERM) cleanly
+trap "kill -TERM $BACKEND_PID $FRONTEND_PID 2>/dev/null || true" INT TERM
 
+# Wait for either process to exit
 wait -n $BACKEND_PID $FRONTEND_PID
 EXIT_CODE=$?
 echo "[SHUTDOWN] Process exited with code $EXIT_CODE, terminating container..."

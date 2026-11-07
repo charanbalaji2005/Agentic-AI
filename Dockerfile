@@ -51,4 +51,4 @@ RUN chmod +x ./start.sh
 # Render dynamically sets $PORT (defaults to 10000)
 EXPOSE 10000
 
-CMD ["./start.sh"]
+CMD ["/bin/bash", "./start.sh"]
