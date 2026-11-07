@@ -39,8 +39,8 @@ export async function POST(req: Request) {
       providers: ["credentials"], acceptedTermsAt: now, createdAt: now,
     });
     return NextResponse.json({ ok: true }, { status: 201 });
-  } catch (err) {
-    if (err instanceof MongoServerError && err.code === 11000) {
+  } catch (err: any) {
+    if ((err instanceof MongoServerError && err.code === 11000) || err?.code === 11000) {
       return NextResponse.json({ error: "An account with this email already exists." }, { status: 409 });
     }
     console.error("register failed", err);
