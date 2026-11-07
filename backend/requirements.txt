@@ -1,0 +1,32 @@
+# --- API ---
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pydantic-settings>=2.3
+python-multipart>=0.0.9
+structlog>=24.1
+torch>=2.3
+transformers>=4.45
+accelerate>=0.33
+sentence-transformers>=3.0
+bitsandbytes>=0.43 ; platform_system == "Linux"
+langgraph>=0.2.40
+langchain-core>=0.3
+mcp>=1.9
+jsonschema>=4.22
+faiss-cpu>=1.8          
+qdrant-client>=1.10
+rank-bm25>=0.2.2
+numpy>=1.26
+pypdf>=4.2
+pymupdf>=1.23           # answer → PDF export (Story HTML layout)
+markdown-it-py>=3.0     # markdown → HTML for PDF export
+python-docx>=1.1
+beautifulsoup4>=4.12
+ddgs>=9.5               # free DuckDuckGo web search, no API key (unofficial; may rate-limit)
+sqlalchemy[asyncio]>=2.0
+asyncpg>=0.29
+aiosqlite>=0.20
+redis>=5.0
+pytest>=8
+pytest-asyncio>=0.23

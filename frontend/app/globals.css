@@ -1,0 +1,224 @@
+@import "katex/dist/katex.min.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────────────────── Tokens ─────────────────────────
+   Warm paper neutrals with a single clay accent (send button, logo, focus).
+   Agent identity is carried by icon + label, not hue. Status colors are functional only. */
+
+:root {
+  --font-serif: "Source Serif 4", ui-serif, Georgia, Cambria, "Times New Roman", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --canvas: 250 249 245;
+  --surface: 255 255 255;
+  --elevated: 255 255 255;
+  --sunken: 243 241 234;
+  --sidebar: 245 244 238;
+  --bubble: 240 238 230;
+  --ink: 20 20 19;
+  --muted: 115 114 108;
+  --line: 229 226 216;
+  --focus: 201 100 66;
+  --accent: 201 100 66;
+  --accent2: 217 119 87;
+  --on-accent: 255 255 255;
+  --danger: 190 50 40;
+  --warn: 170 105 10;
+  --ok: 40 125 70;
+
+  --agg: 20 20 19;
+  --local: 75 73 68;
+  --mcp: 100 98 92;
+  --cloud: 125 123 116;
+  --web: 150 147 140;
+
+  /* hover tooltips: a little black box in both themes */
+  --tip-bg: 28 27 25;
+  --tip-fg: 250 249 245;
+
+  /* syntax colors */
+  --code-kw: 166 63 36;
+  --code-str: 46 112 72;
+  --code-num: 150 92 0;
+  --code-fn: 42 92 150;
+  --code-com: 140 138 130;
+
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: 38 38 36;
+  --surface: 48 48 46;
+  --elevated: 52 52 49;
+  --sunken: 31 30 29;
+  --sidebar: 31 30 29;
+  --bubble: 24 24 22;
+  --ink: 250 249 245;
+  --muted: 160 157 148;
+  --line: 64 63 58;
+  --focus: 217 119 87;
+  --accent: 217 119 87;
+  --accent2: 229 143 114;
+  --on-accent: 255 255 255;
+  --danger: 240 115 105;
+  --warn: 232 178 70;
+  --ok: 120 205 145;
+
+  --agg: 250 249 245;
+  --local: 214 211 202;
+  --mcp: 184 181 172;
+  --cloud: 154 151 143;
+  --web: 128 126 119;
+
+  --tip-bg: 12 12 11;
+  --tip-fg: 250 249 245;
+
+  --code-kw: 230 140 110;
+  --code-str: 150 200 135;
+  --code-num: 232 185 105;
+  --code-fn: 135 180 230;
+  --code-com: 135 133 125;
+
+  color-scheme: dark;
+}
+
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@layer base {
+  html, body { height: 100%; }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3 { @apply tracking-tight; }
+  :focus-visible { outline: 2px solid rgb(var(--focus) / 0.6); outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: rgb(var(--accent) / 0.22); }
+}
+
+@layer components {
+  /* Answer typography — serif reading face, like a well-set document */
+  .prose-answer { @apply font-serif text-[16.5px] leading-[1.7] text-ink; }
+  .prose-answer p { @apply my-3.5; }
+  .prose-answer > :first-child { @apply mt-0; }
+  .prose-answer > :last-child { @apply mb-0; }
+  .prose-answer ul { @apply my-3 list-disc pl-6; }
+  .prose-answer ol { @apply my-3 list-decimal pl-6; }
+  .prose-answer li { @apply my-1.5 pl-1; }
+  .prose-answer strong { @apply font-semibold; }
+  .prose-answer h1, .prose-answer h2, .prose-answer h3 { @apply mb-2 mt-6 font-sans text-[17px] font-semibold; }
+  /* :where() keeps these at single-class specificity so the code/table boxes' utilities win. */
+  .prose-answer :where(:not(pre) > code) { @apply rounded-[5px] border border-line bg-sunken px-1.5 py-px font-mono text-[13px]; }
+  .prose-answer :where(pre) { @apply my-4 overflow-x-auto rounded-xl border border-line bg-sunken p-4 font-mono text-[13px] leading-6; }
+  .prose-answer :where(table) { @apply my-4 w-full border-collapse font-sans text-sm; }
+  .prose-answer blockquote { @apply my-4 border-l-2 border-line pl-4 text-muted; }
+  .prose-answer a { @apply underline decoration-muted/50 underline-offset-[3px] hover:decoration-ink; }
+  .prose-answer hr { @apply my-6 border-line; }
+
+  .scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(var(--line)) transparent; }
+  .scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: rgb(var(--line)); border-radius: 99px; border: 2px solid transparent; background-clip: content-box; }
+
+  /* Kept for compatibility: plain surfaces now, no blur */
+  .glass { background: rgb(var(--surface)); }
+  .text-gradient { color: rgb(var(--ink)); }
+  .bg-brand { background-color: rgb(var(--ink)); }
+
+  .text-shimmer {
+    background: linear-gradient(90deg, rgb(var(--muted)) 0%, rgb(var(--muted)) 40%, rgb(var(--ink)) 50%, rgb(var(--muted)) 60%, rgb(var(--muted)) 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 2.4s linear infinite;
+  }
+
+  /* Hover lift used by cards — neutral */
+  .spotlight { position: relative; transition: border-color 0.2s, box-shadow 0.2s; }
+  .spotlight:hover { border-color: rgb(var(--ink) / 0.18); }
+
+  /* Rotating monochrome border beam for "in progress" */
+  .beam { position: relative; }
+  .beam::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--beam-angle), transparent 0 70%, rgb(var(--ink) / 0.55) 85%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: beam-spin 2.6s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .flow-x, .flow-y { background-color: rgb(var(--line)); }
+  .flow-x.is-live {
+    background: repeating-linear-gradient(90deg, rgb(var(--ink) / 0.7) 0 5px, transparent 5px 10px);
+    background-size: 20px 100%;
+    animation: flow-x 0.8s linear infinite;
+  }
+  .flow-y.is-live {
+    background: repeating-linear-gradient(180deg, rgb(var(--ink) / 0.7) 0 5px, transparent 5px 10px);
+    background-size: 100% 20px;
+    animation: flow-y 0.8s linear infinite;
+  }
+
+  .caret-last > :last-child::after,
+  .caret-last > :last-child > li:last-child::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 0.55em;
+    margin-left: 6px;
+    vertical-align: 0.05em;
+    border-radius: 99px;
+    background: rgb(var(--ink));
+    animation: blink 1s steps(1) infinite;
+  }
+  .caret-last > ul:last-child::after, .caret-last > ol:last-child::after { display: none; }
+
+  .range { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 99px; background: rgb(var(--line)); outline: none; }
+  .range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 99px; background: rgb(var(--canvas)); border: 2px solid rgb(var(--ink)); cursor: pointer; }
+  .range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 99px; background: rgb(var(--canvas)); border: 2px solid rgb(var(--ink)); cursor: pointer; }
+
+  .backdrop-grid { display: none; }
+
+  /* Hover tooltip: small black label box */
+  .tip {
+    @apply pointer-events-none fixed z-[100] w-max max-w-[280px] rounded-md px-2 py-[3px] text-[12px] font-medium leading-5;
+    background: rgb(var(--tip-bg));
+    color: rgb(var(--tip-fg));
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+    animation: tip-in 0.12s ease-out;
+  }
+  .dark .tip { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08), 0 2px 8px rgb(0 0 0 / 0.4); }
+  .tip-kbd { @apply ml-1.5 font-normal; color: rgb(var(--tip-fg) / 0.55); }
+
+  /* Syntax highlighting in code boxes */
+  .tok-kw { color: rgb(var(--code-kw)); }
+  .tok-str { color: rgb(var(--code-str)); }
+  .tok-num { color: rgb(var(--code-num)); }
+  .tok-fn { color: rgb(var(--code-fn)); }
+  .tok-com { color: rgb(var(--code-com)); font-style: italic; }
+}
+
+@keyframes tip-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+@keyframes gradient-pan { to { background-position: 200% center; } }
+@keyframes beam-spin { to { --beam-angle: 360deg; } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+@keyframes flow-x { to { background-position: 20px 0; } }
+@keyframes flow-y { to { background-position: 0 20px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

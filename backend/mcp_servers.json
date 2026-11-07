@@ -1,0 +1,57 @@
+{
+  "servers": [
+    {
+      "name": "filesystem",
+      "category": "local",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${MCP_FS_ROOT}"],
+      "enabled": true,
+      "description": "Read-only access to the local document folder",
+      "permissions": {
+        "allow": ["read_*", "list_*", "search_files", "get_file_info", "directory_tree"],
+        "deny": ["write_file", "edit_file", "move_file", "create_directory"],
+        "approval_required": []
+      }
+    },
+    {
+      "name": "fetch",
+      "category": "search",
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "enabled": true,
+      "description": "Fetches a URL and returns readable markdown"
+    },
+    {
+      "name": "brave-search",
+      "category": "search",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@brave/brave-search-mcp-server"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+      "enabled": false,
+      "description": "Web search (needs BRAVE_API_KEY)"
+    },
+    {
+      "name": "aws-docs",
+      "category": "cloud",
+      "transport": "stdio",
+      "command": "uvx",
+      "args": ["awslabs.aws-documentation-mcp-server"],
+      "env": { "FASTMCP_LOG_LEVEL": "ERROR" },
+      "enabled": false,
+      "description": "AWS documentation search and reading"
+    },
+    {
+      "name": "azure",
+      "category": "cloud",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@azure/mcp", "server", "start", "--read-only"],
+      "enabled": false,
+      "description": "Azure resources (read-only mode; uses your az login credentials)",
+      "permissions": { "allow": ["*"], "deny": [], "approval_required": ["*delete*", "*create*", "*update*"] }
+    }
+  ]
+}
