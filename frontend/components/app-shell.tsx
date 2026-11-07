@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
+import { SessionProvider, signOut, useSession } from "next-auth/react";
 import {
-  BarChart3, Brain, Cpu, Library, Menu, MessageSquare, Moon, MoreHorizontal, PanelLeft, Plus, PlugZap, Search, Sun, Trash2,
+  BarChart3, Brain, Cpu, Library, LogOut, Menu, MessageSquare, Moon, MoreHorizontal, PanelLeft, Plus, PlugZap, Search, Sun, Trash2,
 } from "lucide-react";
 import { CommandPalette } from "@/components/command-palette";
 import { LogoMark } from "@/components/logo";
@@ -24,6 +25,9 @@ const NAV = [
   { href: "/analytics", label: "Quality", icon: BarChart3 },
 ];
 
+/** Pages rendered without the app chrome (sidebar, palette) and reachable while signed out. */
+const PUBLIC_ROUTES = ["/login", "/register", "/terms", "/privacy"];
+
 type Convo = { id: string; title: string; updated_at: string };
 type Health = "online" | "loading" | "offline";
 
@@ -40,6 +44,10 @@ function Sidebar({ expanded, onToggle, onOpenPalette, dark, onToggleTheme, healt
   const router = useRouter();
   const { confirm, toast } = useUI();
   const { activeId, historyVersion } = useChatStore();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const displayName = user?.name || user?.email || "Signed in";
+  const initial = (displayName.trim()[0] ?? "U").toUpperCase();
   const [convos, setConvos] = useState<Convo[]>([]);
   const [menu, setMenu] = useState<string | null>(null);
 
@@ -165,35 +173,58 @@ function Sidebar({ expanded, onToggle, onOpenPalette, dark, onToggleTheme, healt
         )}
       </div>
 
-      {/* Profile row */}
+      {/* Profile & Controls */}
       <div className="border-t border-line p-2">
-        <div className={cn("flex items-center gap-2 rounded-lg p-1.5", wide && "hover:bg-ink/[0.04]")}>
-          <Tooltip label={health.detail} side="right" disabled={wide}>
-            <span className="relative grid size-8 shrink-0 place-items-center rounded-full bg-ink text-[13px] font-semibold text-canvas">
-              U
-              <span className={cn("absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-sidebar", dot)} />
-            </span>
-          </Tooltip>
-          {wide && (
+        {wide ? (
+          <div className="flex items-center gap-2 rounded-xl p-1.5 hover:bg-ink/[0.03]">
+            <Tooltip label={`${displayName} · ${health.detail}`} side="right" disabled={wide}>
+              <span className="relative grid size-8 shrink-0 place-items-center rounded-full bg-ink text-[13px] font-semibold text-canvas">
+                {user?.image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={user.image} alt="" referrerPolicy="no-referrer" className="size-8 rounded-full object-cover" />
+                  : initial}
+                <span className={cn("absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-sidebar", dot)} />
+              </span>
+            </Tooltip>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-medium">Local user</p>
-              <p className="truncate text-[11.5px] text-muted">{health.detail}</p>
+              <p className="truncate text-[13.5px] font-medium leading-snug">{displayName}</p>
+              <p className="truncate text-[11.5px] text-muted">{user?.email && user.email !== displayName ? user.email : health.detail}</p>
             </div>
-          )}
-          {wide && (
-            <Tooltip label={dark ? "Light mode" : "Dark mode"}>
-              <button onClick={onToggleTheme} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink" aria-label="Toggle theme">
+            <div className="flex items-center gap-0.5">
+              <Tooltip label={dark ? "Light mode" : "Dark mode"} side="top">
+                <button onClick={onToggleTheme} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink transition-colors" aria-label="Toggle theme">
+                  {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                </button>
+              </Tooltip>
+              <Tooltip label="Sign out" side="top">
+                <button onClick={() => signOut({ callbackUrl: "/login" })} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink transition-colors" aria-label="Sign out">
+                  <LogOut className="size-4" />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2 py-1">
+            <Tooltip label={`${displayName} · ${health.detail}`} side="right">
+              <span className="relative grid size-8 shrink-0 place-items-center rounded-full bg-ink text-[13px] font-semibold text-canvas">
+                {user?.image
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={user.image} alt="" referrerPolicy="no-referrer" className="size-8 rounded-full object-cover" />
+                  : initial}
+                <span className={cn("absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full ring-2 ring-sidebar", dot)} />
+              </span>
+            </Tooltip>
+            <Tooltip label={dark ? "Light mode" : "Dark mode"} side="right">
+              <button onClick={onToggleTheme} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink transition-colors" aria-label="Toggle theme">
                 {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </button>
             </Tooltip>
-          )}
-        </div>
-        {!wide && (
-          <Tooltip label={dark ? "Light mode" : "Dark mode"} side="right">
-            <button onClick={onToggleTheme} className="mt-1 grid size-9 w-full place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink" aria-label="Toggle theme">
-              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </button>
-          </Tooltip>
+            <Tooltip label="Sign out" side="right">
+              <button onClick={() => signOut({ callbackUrl: "/login" })} className="grid size-8 place-items-center rounded-lg text-muted hover:bg-ink/[0.06] hover:text-ink transition-colors" aria-label="Sign out">
+                <LogOut className="size-4" />
+              </button>
+            </Tooltip>
+          </div>
         )}
       </div>
     </div>
@@ -201,6 +232,18 @@ function Sidebar({ expanded, onToggle, onOpenPalette, dark, onToggleTheme, healt
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  const isPublic = PUBLIC_ROUTES.some((r) => path === r || path.startsWith(`${r}/`));
+  return (
+    <SessionProvider>
+      {isPublic
+        ? <MotionConfig reducedMotion="user">{children}</MotionConfig>
+        : <AppChrome>{children}</AppChrome>}
+    </SessionProvider>
+  );
+}
+
+function AppChrome({ children }: { children: React.ReactNode }) {
   const [dark, setDark] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);

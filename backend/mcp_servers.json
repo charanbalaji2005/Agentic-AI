@@ -5,22 +5,56 @@
       "category": "local",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${MCP_FS_ROOT}"],
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${MCP_FS_ROOT}"
+      ],
+      "env": {},
+      "url": null,
+      "headers": {},
       "enabled": true,
-      "description": "Read-only access to the local document folder",
+      "timeout_s": null,
       "permissions": {
-        "allow": ["read_*", "list_*", "search_files", "get_file_info", "directory_tree"],
-        "deny": ["write_file", "edit_file", "move_file", "create_directory"],
-        "approval_required": []
-      }
+        "allow": [
+          "read_*",
+          "list_*",
+          "search_files",
+          "get_file_info",
+          "directory_tree"
+        ],
+        "deny": [
+          "write_file",
+          "edit_file",
+          "move_file",
+          "create_directory"
+        ],
+        "approval_required": [],
+        "auto_approve_read_only": true
+      },
+      "description": "Read-only access to the local document folder"
     },
     {
       "name": "fetch",
       "category": "search",
       "transport": "stdio",
       "command": "uvx",
-      "args": ["mcp-server-fetch"],
+      "args": [
+        "mcp-server-fetch"
+      ],
+      "env": {},
+      "url": null,
+      "headers": {},
       "enabled": true,
+      "timeout_s": null,
+      "permissions": {
+        "allow": [
+          "*"
+        ],
+        "deny": [],
+        "approval_required": [],
+        "auto_approve_read_only": true
+      },
       "description": "Fetches a URL and returns readable markdown"
     },
     {
@@ -28,9 +62,25 @@
       "category": "search",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@brave/brave-search-mcp-server"],
-      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" },
+      "args": [
+        "-y",
+        "@brave/brave-search-mcp-server"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "url": null,
+      "headers": {},
       "enabled": false,
+      "timeout_s": null,
+      "permissions": {
+        "allow": [
+          "*"
+        ],
+        "deny": [],
+        "approval_required": [],
+        "auto_approve_read_only": true
+      },
       "description": "Web search (needs BRAVE_API_KEY)"
     },
     {
@@ -38,9 +88,24 @@
       "category": "cloud",
       "transport": "stdio",
       "command": "uvx",
-      "args": ["awslabs.aws-documentation-mcp-server"],
-      "env": { "FASTMCP_LOG_LEVEL": "ERROR" },
+      "args": [
+        "awslabs.aws-documentation-mcp-server"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "url": null,
+      "headers": {},
       "enabled": false,
+      "timeout_s": null,
+      "permissions": {
+        "allow": [
+          "*"
+        ],
+        "deny": [],
+        "approval_required": [],
+        "auto_approve_read_only": true
+      },
       "description": "AWS documentation search and reading"
     },
     {
@@ -48,10 +113,61 @@
       "category": "cloud",
       "transport": "stdio",
       "command": "npx",
-      "args": ["-y", "@azure/mcp", "server", "start", "--read-only"],
+      "args": [
+        "-y",
+        "@azure/mcp",
+        "server",
+        "start",
+        "--read-only"
+      ],
+      "env": {},
+      "url": null,
+      "headers": {},
       "enabled": false,
-      "description": "Azure resources (read-only mode; uses your az login credentials)",
-      "permissions": { "allow": ["*"], "deny": [], "approval_required": ["*delete*", "*create*", "*update*"] }
+      "timeout_s": null,
+      "permissions": {
+        "allow": [
+          "*"
+        ],
+        "deny": [],
+        "approval_required": [
+          "*delete*",
+          "*create*",
+          "*update*"
+        ],
+        "auto_approve_read_only": true
+      },
+      "description": "Azure resources (read-only mode; uses your az login credentials)"
+    },
+    {
+      "name": "github",
+      "category": "github",
+      "transport": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "url": null,
+      "headers": {},
+      "enabled": true,
+      "timeout_s": null,
+      "permissions": {
+        "allow": [
+          "*"
+        ],
+        "deny": [],
+        "approval_required": [
+          "create_*",
+          "push_*",
+          "merge_*"
+        ],
+        "auto_approve_read_only": true
+      },
+      "description": ""
     }
   ]
 }

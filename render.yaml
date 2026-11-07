@@ -1,0 +1,87 @@
+# Render Blueprint Configuration (https://render.com/docs/blueprint-spec)
+# Deploys Agentic RAG (FastAPI Python backend + Next.js React frontend)
+version: "1"
+
+services:
+  # ============================================================================
+  # 1. FastAPI Backend Web Service
+  # ============================================================================
+  - type: web
+    name: agentic-rag-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    # Uses PyTorch CPU wheel to keep memory within 512MB free tier
+    buildCommand: pip install --upgrade pip && pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/models
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.10
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+
+      # --- Groq LLM Configuration ---
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_API_KEY
+        sync: false # Set in Render Dashboard: your Groq API key
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL_PLANNER
+        value: openai/gpt-oss-120b
+      - key: GROQ_MODEL_GENERATOR
+        value: openai/gpt-oss-120b
+      - key: GROQ_MODEL_FAST
+        value: openai/gpt-oss-20b
+      - key: GROQ_MODEL_VALIDATOR
+        value: openai/gpt-oss-20b
+      - key: GROQ_MODEL_CODE
+        value: openai/gpt-oss-120b
+
+      # --- Local Embedding & Vector Models (CPU) ---
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-small-en-v1.5
+      - key: RERANKER_MODEL
+        value: cross-encoder/ms-marco-MiniLM-L-6-v2
+      - key: DEVICE
+        value: cpu
+      - key: VECTOR_BACKEND
+        value: faiss
+      - key: DATA_DIR
+        value: ./data
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/rag.db
+      - key: CORS_ORIGINS
+        value: '["*"]'
+
+  # ============================================================================
+  # 2. Next.js Frontend Web Service
+  # ============================================================================
+  - type: web
+    name: agentic-rag-frontend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install --legacy-peer-deps && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      # Points to the backend URL on Render (e.g. https://agentic-rag-backend.onrender.com)
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
+      - key: NEXTAUTH_URL
+        sync: false # Set to your frontend URL (e.g. https://agentic-rag-frontend.onrender.com)
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false
