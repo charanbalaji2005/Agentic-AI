@@ -28,21 +28,47 @@ from app.security.guards import require_api_key
 async def lifespan(app: FastAPI):
     s = get_settings()
     setup_logging(s.log_level)
-    await init_db()
+    try:
+        await init_db()
+    except Exception as e:
+        log.error("db.init_failed", error=str(e))
+
     m = get_models()
-    # The embedder defines index dimensions, so it loads before knowledge bases open.
-    await asyncio.to_thread(m.embedder.load)
-    await asyncio.to_thread(m.reranker.load)
-    kb_registry.load_existing()
+    try:
+        # The embedder defines index dimensions, so it loads before knowledge bases open.
+        await asyncio.to_thread(m.embedder.load)
+    except Exception as e:
+        log.error("embedder.init_failed", error=str(e))
+
+    try:
+        kb_registry.load_existing()
+    except Exception as e:
+        log.error("kb.init_failed", error=str(e))
+
     for agent in (LocalRAGAgent(), WebResearchAgent(), CloudAgent()):
         registry.register(agent)
-    mcp_manager.log_sink = memory.persist_tool_log
-    mcp_manager.load_config()
-    asyncio.create_task(mcp_manager.connect_all())
+
+    try:
+        mcp_manager.log_sink = memory.persist_tool_log
+        mcp_manager.load_config()
+        asyncio.create_task(mcp_manager.connect_all())
+    except Exception as e:
+        log.error("mcp.init_failed", error=str(e))
+
+    asyncio.create_task(asyncio.to_thread(_safe_load_reranker))
     asyncio.create_task(asyncio.to_thread(_safe_load_generator))  # large: load in background
     log.info("app.started", llm=s.llm_model, embedder=s.embedding_model, reranker=s.reranker_model)
     yield
     await mcp_manager.shutdown()
+
+
+def _safe_load_reranker():
+    try:
+        s = get_settings()
+        if s.reranker_model and s.reranker_model.lower() not in ("none", "false", "off", ""):
+            get_models().reranker.load()
+    except Exception as e:  # noqa: BLE001
+        log.warning("reranker.safe_load_failed", error=str(e))
 
 
 def _safe_load_generator():
@@ -83,7 +109,14 @@ app.include_router(export.router, dependencies=deps)
 
 @app.get("/health")
 async def health():
-    m = get_models().status()
-    return {"status": "ok", "generator": m["generator"]["state"], "embedder": m["embedder"]["state"],
+    try:
+        m = get_models().status()
+        return {
+            "status": "ok",
+            "generator": m["generator"]["state"],
+            "embedder": m["embedder"]["state"],
             "reranker": m["reranker"]["state"],
-            "mcp": {n: c.status for n, c in mcp_manager.conns.items()}}
+            "mcp": {n: c.status for n, c in mcp_manager.conns.items()},
+        }
+    except Exception as e:
+        return {"status": "ok", "warning": str(e)}

@@ -92,10 +92,40 @@ class EvalRun(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
-engine = create_async_engine(get_settings().database_url, pool_pre_ping=True)
+from pathlib import Path
+from app.core.logging import log
+
+_settings = get_settings()
+_db_url = _settings.database_url
+if _db_url.startswith("sqlite"):
+    Path("./data").mkdir(parents=True, exist_ok=True)
+
+engine = create_async_engine(_db_url, pool_pre_ping=True)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
 async def init_db() -> None:
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    global engine, SessionLocal
+    # 1. Try to initialize configured database
+    try:
+        if str(engine.url).startswith("sqlite"):
+            Path("./data").mkdir(parents=True, exist_ok=True)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        log.info("db.initialized", url=str(engine.url))
+        return
+    except Exception as e:
+        log.warning("db.initial_connect_failed", error=str(e), msg="Attempting fallback to local SQLite database...")
+
+    # 2. Fallback to local SQLite if PostgreSQL or external host is unreachable
+    try:
+        Path("./data").mkdir(parents=True, exist_ok=True)
+        fallback_url = "sqlite+aiosqlite:///./data/rag.db"
+        fallback_engine = create_async_engine(fallback_url)
+        async with fallback_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        engine = fallback_engine
+        SessionLocal.configure(bind=engine)
+        log.info("db.fallback_initialized", url=fallback_url)
+    except Exception as e2:
+        log.error("db.fallback_failed", error=str(e2))

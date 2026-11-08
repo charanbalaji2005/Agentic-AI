@@ -6,6 +6,8 @@ const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
     return [
+      { source: "/health", destination: `${BACKEND_URL}/health` },
+      { source: "/api/health", destination: `${BACKEND_URL}/health` },
       { source: "/api/chat/:path*", destination: `${BACKEND_URL}/api/chat/:path*` },
       { source: "/api/chat", destination: `${BACKEND_URL}/api/chat` },
       { source: "/api/models/:path*", destination: `${BACKEND_URL}/api/models/:path*` },

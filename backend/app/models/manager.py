@@ -315,6 +315,9 @@ class Reranker:
 
     def load(self, name: str | None = None) -> None:
         name = name or self.s.reranker_model
+        if not name or name.lower() in ("none", "false", "off", ""):
+            self.status = ModelStatus(name="none", state="unloaded")
+            return
         self.status = ModelStatus(name=name, state="loading")
         t0 = time.time()
         try:
@@ -326,7 +329,7 @@ class Reranker:
                                       load_seconds=round(time.time() - t0, 1))
         except Exception as e:  # noqa: BLE001
             self.status = ModelStatus(name=name, state="error", error=str(e))
-            raise
+            log.warning("reranker.load_failed", model=name, error=str(e))
 
     @torch.inference_mode()
     def score(self, query: str, passages: list[str], batch_size: int = 16) -> list[float]:

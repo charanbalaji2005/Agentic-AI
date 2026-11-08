@@ -42,11 +42,11 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_query_prefix: str = "Represent this sentence for searching relevant passages: "
     embedding_doc_prefix: str = ""
-    reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     device: Literal["auto", "cuda", "cpu", "mps"] = "auto"  # for embedder/reranker
 
     # --- Storage --------------------------------------------------------------
-    database_url: str = "postgresql+asyncpg://rag:rag@localhost:5432/agentic_rag"
+    database_url: str = "sqlite+aiosqlite:///./data/rag.db"
     redis_url: str | None = None
     vector_backend: Literal["faiss", "qdrant"] = "faiss"
     qdrant_url: str = "http://localhost:6333"

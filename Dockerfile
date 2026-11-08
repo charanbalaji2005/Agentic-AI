@@ -36,6 +36,15 @@ RUN pip install --upgrade pip \
     && pip install torch --index-url https://download.pytorch.org/whl/cpu \
     && pip install -r backend/requirements.txt
 
+# Bake the embedding + reranker models into the image so startup doesn't download them
+# on every deploy / cold start. Override HF_HUB_OFFLINE=0 in Render if you switch models.
+ENV HF_HOME=/app/hf-cache \
+    HF_HUB_DISABLE_TELEMETRY=1
+RUN python -c "from huggingface_hub import snapshot_download as d; \
+ig=['pytorch_model.bin','*.onnx','onnx/*','openvino/*','*.h5','*.msgpack','*.ot','tf_model*','flax_model*','rust_model*']; \
+[d(m, ignore_patterns=ig) for m in ('BAAI/bge-small-en-v1.5','cross-encoder/ms-marco-MiniLM-L-6-v2')]"
+ENV HF_HUB_OFFLINE=1
+
 # Copy backend source
 COPY backend/ ./backend/
 

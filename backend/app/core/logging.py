@@ -6,6 +6,9 @@ import structlog
 
 def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(format="%(message)s", stream=sys.stdout, level=level)
+    # Third-party HTTP clients log every request at INFO (e.g. each Hugging Face file fetch).
+    for noisy in ("httpx", "httpcore", "urllib3", "huggingface_hub", "filelock"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,

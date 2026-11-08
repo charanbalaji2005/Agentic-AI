@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "os";
 import path from "path";
 import { MongoClient, type Db } from "mongodb";
 
@@ -23,29 +24,33 @@ export type UserDoc = {
 // -----------------------------------------------------------------------------
 // Fallback Local File Storage (used when MONGODB_URI is unconfigured or offline)
 // -----------------------------------------------------------------------------
-const FALLBACK_FILE = path.join(process.cwd(), "data", "users_auth.json");
-
-function ensureDir(filePath: string) {
-  const dir = path.dirname(filePath);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+function getFallbackFilePath(): string {
+  const primary = path.join(process.cwd(), "data", "users_auth.json");
+  try {
+    const dir = path.dirname(primary);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    return primary;
+  } catch {
+    return path.join(os.tmpdir(), "users_auth.json");
+  }
 }
 
 function readFallbackUsers(): Record<string, UserDoc> {
+  const filePath = getFallbackFilePath();
   try {
-    ensureDir(FALLBACK_FILE);
-    if (!fs.existsSync(FALLBACK_FILE)) return {};
-    return JSON.parse(fs.readFileSync(FALLBACK_FILE, "utf-8"));
+    if (!fs.existsSync(filePath)) return {};
+    return JSON.parse(fs.readFileSync(filePath, "utf-8"));
   } catch {
     return {};
   }
 }
 
 function writeFallbackUsers(data: Record<string, UserDoc>) {
+  const filePath = getFallbackFilePath();
   try {
-    ensureDir(FALLBACK_FILE);
-    fs.writeFileSync(FALLBACK_FILE, JSON.stringify(data, null, 2), "utf-8");
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
   } catch (err) {
-    console.error("Failed to write fallback users:", err);
+    console.error("Failed to write fallback users to", filePath, err);
   }
 }
 
